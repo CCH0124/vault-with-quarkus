@@ -1,0 +1,77 @@
+global:
+  enabled: true
+  tlsDisable: true
+
+injector:
+  enabled: true
+  # Use the Vault K8s Image https://github.com/hashicorp/vault-k8s/
+  image:
+    repository: "hashicorp/vault-k8s"
+    pullPolicy: IfNotPresent
+  agentDefaults:
+    cpuLimit: "500m"
+    cpuRequest: "250m"
+    memLimit: "128Mi"
+    memRequest: "64Mi"
+  resources:
+    requests:
+      memory: 50Mi
+      cpu: 50m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+
+server:
+  image:
+    repository: "hashicorp/vault"
+    pullPolicy: IfNotPresent
+
+  # These Resource Limits are in line with node requirements in the
+  # Vault Reference Architecture for a Small Cluster
+  resources:
+    requests:
+      memory: 50Mi
+      cpu: 250m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+  ingress:
+    enabled: true
+    hosts:
+      - host: vault-demo.cch.com
+    ingressClassName: "nginx"
+    pathType: Prefix
+
+  # shareProcessNamespace enables process namespace sharing between Vault and the extraContainers
+  # This is useful if Vault must be signaled, e.g. to send a SIGHUP for a log rotation
+  shareProcessNamespace: false
+  
+  service:
+    enabled: true
+
+    # Port on which Vault server is listening
+    port: 8200
+    # Target port to which the service should be mapped to
+    targetPort: 8200
+
+ # See https://www.vaultproject.io/docs/configuration/storage/index.html to know more
+  dataStorage:
+    enabled: true
+    size: 10Gi
+    storageClass: null
+    accessMode: ReadWriteOnce
+
+  standalone:
+    enabled: true
+
+# Vault UI
+ui:
+  enabled: true
+  externalPort: 8200
+
+csi:
+  enabled: true
+  image:
+    repository: "hashicorp/vault-csi-provider"
+    pullPolicy: IfNotPresent
