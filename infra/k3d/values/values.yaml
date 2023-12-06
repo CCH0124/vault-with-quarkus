@@ -25,7 +25,12 @@ server:
   image:
     repository: "hashicorp/vault"
     pullPolicy: IfNotPresent
-
+  hostAliases:
+  - ip: "172.25.150.200"
+    hostnames:
+    - "app.cch.com"
+  logLevel: debug
+  logFormat: json
   # These Resource Limits are in line with node requirements in the
   # Vault Reference Architecture for a Small Cluster
   resources:

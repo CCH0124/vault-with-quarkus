@@ -9,6 +9,7 @@ kubeAPI: # same as `--api-port myhost.my.domain:6445` (where the name would reso
   hostIP: "127.0.0.1" # where the Kubernetes API will be listening on
   hostPort: "6451"
 image: rancher/k3s:v1.27.7-k3s1
+network: vault-net
 ports:
   - port: 8051:80
     nodeFilters:

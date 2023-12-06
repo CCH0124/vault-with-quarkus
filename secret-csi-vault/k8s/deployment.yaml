@@ -1,14 +1,46 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-auth
+  labels:
+    app.kubernetes.io/managed-by: vault
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-auth
+  annotations:
+    kubernetes.io/service-account.name: vault-auth
+type: kubernetes.io/service-account-token
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+   name: role-tokenreview-binding
+roleRef:
+   apiGroup: rbac.authorization.k8s.io
+   kind: ClusterRole
+   name: system:auth-delegator
+subjects:
+- kind: ServiceAccount
+  name: vault-auth
+  namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: quarkus-app
+  labels:
+    app.kubernetes.io/name: secret-csi-vault
+    app.kubernetes.io/version: latest
+    app.kubernetes.io/managed-by: quarkus
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    app.quarkus.io/commit-id: ade730c6029648712d78c5c305e925fa133ec47b
-    app.quarkus.io/vcs-uri: git@github.com:CCH0124/vault-with-quarkus.git
-    app.quarkus.io/build-timestamp: 2023-12-03 - 03:09:45 +0000
   labels:
     app.kubernetes.io/name: secret-csi-vault
-    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.kubernetes.io/version: latest
     app.kubernetes.io/managed-by: quarkus
   name: secret-csi-vault
 spec:
@@ -19,19 +51,15 @@ spec:
       targetPort: 8080
   selector:
     app.kubernetes.io/name: secret-csi-vault
-    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.kubernetes.io/version: latest
   type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    app.quarkus.io/commit-id: ade730c6029648712d78c5c305e925fa133ec47b
-    app.quarkus.io/vcs-uri: git@github.com:CCH0124/vault-with-quarkus.git
-    app.quarkus.io/build-timestamp: 2023-12-03 - 03:09:45 +0000
   labels:
     app.kubernetes.io/name: secret-csi-vault
-    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.kubernetes.io/version: latest
     app.kubernetes.io/managed-by: quarkus
   name: secret-csi-vault
 spec:
@@ -39,45 +67,54 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: secret-csi-vault
-      app.kubernetes.io/version: 1.0.0-SNAPSHOT
+      app.kubernetes.io/version: latest
   template:
     metadata:
-      annotations:
-        app.quarkus.io/commit-id: ade730c6029648712d78c5c305e925fa133ec47b
-        app.quarkus.io/vcs-uri: git@github.com:CCH0124/vault-with-quarkus.git
-        app.quarkus.io/build-timestamp: 2023-12-03 - 03:09:45 +0000
       labels:
         app.kubernetes.io/managed-by: quarkus
         app.kubernetes.io/name: secret-csi-vault
-        app.kubernetes.io/version: 1.0.0-SNAPSHOT
+        app.kubernetes.io/version: latest
     spec:
+      hostAliases:
+      - ip: "172.25.150.200"
+        hostnames:
+        - "vault-demo.cch.com"
+      serviceAccountName: vault-auth
       containers:
         - env:
             - name: KUBERNETES_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-          image: registry.hub.docker.com/cch0124/secret-csi-vault:1.0.0-SNAPSHOT
+          image: registry.hub.docker.com/cch0124/secret-csi-vault:latest
           imagePullPolicy: Always
           name: secret-csi-vault
           ports:
             - containerPort: 8080
               name: http
               protocol: TCP
+          volumeMounts:
+          - name: config
+            mountPath: "/home/jboss/config"
+            readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: secret-csi-vault
+          items:
+          - key: application.properties
+            path: application.properties
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  annotations:
-    app.quarkus.io/commit-id: ade730c6029648712d78c5c305e925fa133ec47b
-    app.quarkus.io/vcs-uri: git@github.com:CCH0124/vault-with-quarkus.git
-    app.quarkus.io/build-timestamp: 2023-12-03 - 03:09:45 +0000
   labels:
     app.kubernetes.io/name: secret-csi-vault
-    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.kubernetes.io/version: latest
     app.kubernetes.io/managed-by: quarkus
   name: secret-csi-vault
 spec:
+  ingressClassName: nginx
   rules:
     - http:
         paths:
@@ -88,3 +125,23 @@ spec:
                   name: http
             path: /
             pathType: Prefix
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: secret-csi-vault
+  labels:
+    app.kubernetes.io/name: secret-csi-vault
+    app.kubernetes.io/version: latest
+    app.kubernetes.io/managed-by: quarkus
+data:
+  application.properties: |
+    pki.certificate-chain-path=infra/pki/intermediate-ca.crt
+    quarkus.tls.trust-all=true
+    quarkus.vault.url=https://vault-demo.cch.com:8453
+    quarkus.vault.kv-secret-engine-mount-path=kv
+    quarkus.vault.secret-config-kv-path=quarkus/vault-demo
+    quarkus.vault.kv-secret-engine-version=2
+    quarkus.vault.authentication.kubernetes.auth-mount-path=auth/quarkus-cluster
+    quarkus.vault.authentication.kubernetes.role=quarkus-vault
+    quarkus.log.category."io.quarkus.vault".level=DEBUG
