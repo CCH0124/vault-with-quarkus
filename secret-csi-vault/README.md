@@ -195,3 +195,8 @@ vault write auth/quarkus-cluster/role/quarkus-vault \
 
 ## Secret CSI
 
+[Install using Helm](https://secrets-store-csi-driver.sigs.k8s.io/getting-started/installation)
+```bash
+helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+helm install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver --version 1.4.0 --namespace kube-system
+```
