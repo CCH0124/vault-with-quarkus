@@ -195,6 +195,9 @@ vault write auth/quarkus-cluster/role/quarkus-vault \
 
 ## Secret CSI
 
+>K3d 版本要 v5.6.0，否則會有[CreateContainerError](https://github.com/kubernetes-sigs/secrets-store-csi-driver/issues/1017)
+>運行 K3d 需多做這一步 [K3D_FIX_MOUNTS ](https://github.com/k3d-io/k3d/pull/1268)
+
 [Install using Helm](https://secrets-store-csi-driver.sigs.k8s.io/getting-started/installation)
 ```bash
 helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
