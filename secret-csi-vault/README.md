@@ -192,6 +192,12 @@ vault write auth/quarkus-cluster/role/quarkus-vault \
 
 [官方文檔](https://developer.hashicorp.com/vault/docs/auth/kubernetes)
 
+驗證 KV 引擎
+
+```bash
+$ curl -k https://app.cch.com:8451/info
+{"message":"vault hello!"}
+```
 
 ## Secret CSI
 
