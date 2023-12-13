@@ -192,6 +192,10 @@ vault write auth/quarkus-cluster/role/quarkus-vault \
 
 [官方文檔](https://developer.hashicorp.com/vault/docs/auth/kubernetes)
 
-
+Log 資訊
+```bash
+{"@level":"debug","@message":"completed_request","@module":"core","@timestamp":"2023-12-06T11:33:22.628656Z","client_address":"10.42.2.1","client_id":"","duration":"2ms","request_method":"POST","request_path":"/v1/auth/quarkus-cluster/login","start_time":"2023-12-06T11:33:22Z","status_code":200}
+{"@level":"debug","@message":"completed_request","@module":"core","@timestamp":"2023-12-06T11:33:22.660627Z","client_address":"10.42.2.1","client_id":"faf515ee-37d8-f117-1afe-d9d4879850ed","duration":"0ms","request_method":"GET","request_path":"/v1/kv/data/quarkus/vault-demo","start_time":"2023-12-06T11:33:22Z","status_code":200}
+```
 ## Secret CSI
 
