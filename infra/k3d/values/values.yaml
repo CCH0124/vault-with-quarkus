@@ -54,7 +54,8 @@ server:
   
   service:
     enabled: true
-
+    type: NodePort
+    nodePort: 30820
     # Port on which Vault server is listening
     port: 8200
     # Target port to which the service should be mapped to
@@ -76,7 +77,7 @@ ui:
   externalPort: 8200
 
 csi:
-  enabled: true
+  enabled: false
   image:
     repository: "hashicorp/vault-csi-provider"
     pullPolicy: IfNotPresent
